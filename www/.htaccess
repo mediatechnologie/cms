@@ -1,0 +1,17 @@
+<IfModule rewrite_module>
+	Options FollowSymLinks
+	RewriteEngine On
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_FILENAME} !-l
+	RewriteRule .* /index.php [L]
+</IfModule>
+<IfModule !rewrite_module>
+	# if needed the index.php might need to be prefixed with a path.
+	ErrorDocument 404 /index.php
+</IfModule>
+
+# Remember to config the following for the location handled by this .htaccess :
+#AllowOverride FileInfo
+#or you could do:
+#AllowOverride All

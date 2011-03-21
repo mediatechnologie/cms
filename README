@@ -1,0 +1,46 @@
+site
+	"voorkant" // pagina's
+		het hele systeem is een voorbeeld van een site met een cms,
+		de focus ligt op het cms
+		maar in het voorbeeld worden daarnaast ook
+		pagina's vanuit de database samengevoegd
+		met een pagina-template/-sjabloon.
+
+	"achterkant" // cms
+		content management system
+
+		content
+			inhoud / tekst
+				datgene wat waarde geeft aan de media-uiting
+
+			semantiek is belangrijk zodoende
+				géén wysiwyg-editor
+				wél semantisch tekst-invoermogelijkheden
+					`web 3.0` een netwerk van betekenis
+					alles wat overgedragen wordt heeft een betekenis, een doel
+					hierbij kan ook gedacht worden aan xfn, foaf, microformats, etc.
+			bij semantiek stilstaan verstoort het `vloeiende` schrijfproces
+				wél een wysiwyg-editor
+				géén semantische tekst-invoermogelijkheden
+
+		management
+			beheer
+				weergave van de verschillende te beheren onderdelen
+				alleen toegankelijk voor bepaalde gebruikers van het systeem
+
+		system
+			elementen die elkaar wederzijds beïnvloeden
+			en die een geïntegreerd geheel vormen
+
+REST-principe
+	representational state transfer
+		een simpele( kort-door-de-bocht) mapping tussen rest en crud :
+			GET     -  read   .
+			PUT     -  update .
+			POST    -  create .
+			DELETE  -  delete .
+		de URI geeft de resource aan "cool uri`s don`t change"
+		objecten in enkelvoud
+		wanneer geen specifiek object aangegeven dan verzameling weergeven
+
+
