@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl)
  *  @date 2011-03-05
  *  Created: sab 2011-03-05, 16:07.40 CET
- *  Last modified: lun 2011-03-21, 02:55.10 CET
+ *  Last modified: mar 2011-03-22, 13:10.57 CET
 **/
 
 /**
@@ -27,11 +27,11 @@ class Request
 	final private function __clone (){}
 	final private function __construct ()
 	{
-		$this->determine_resource();
-		$this->determine_verb();
+		$this->determineResource();
+		$this->determineVerb();
 #return self::$instance;// unnecesary, default behaviour
 	}
-	public function determine_app_base ()
+	public function determineAppBase ()
 	{
 		$app_base  =  '';
 
@@ -54,14 +54,14 @@ class Request
 
 		$this->app_base  =  $app_base;
 	}
-	private function determine_resource ()
+	private function determineResource ()
 	{
 		if ( isset( $_SERVER[ 'PATH_INFO' ] ) )
 		{
 			$this->resource  =  $_SERVER[ 'PATH_INFO' ];
 			return;
 		}
-		$this->determine_app_base();
+		$this->determineAppBase();
 
 		$resource  =  $_SERVER[ 'REQUEST_URI' ];
 
@@ -73,7 +73,7 @@ class Request
 
 		$this->resource  =  $resource;
 	}
-	private function determine_verb ()
+	private function determineVerb ()
 	{
 		$verb  =  $_SERVER[ 'REQUEST_METHOD' ];
 		if ( isset( $_POST[ self::$FORMFIELDNAME_METHOD ] ) )
@@ -83,6 +83,10 @@ class Request
 			throw new Exception( 'unallowed method/verb' );
 
 		$this->verb  =  $verb;
+	}
+
+	public function resourceArray ()
+	{
 	}
 
 	public           function __call ( $method , $parameters = array() )
@@ -118,7 +122,14 @@ class Request
 					: FALSE
 				;
 			else
-				throw new Exception( 'wrong (g|s)etter' );
+				throw new Exception(
+					'wrong (g|s)etter' .
+					(
+						defined( 'DEV' )
+						? ' ' . rvd( $method ) . ' : ' . rvd( $parameters )
+						: ''
+					)
+				);
 		elseif (
 			NULL !== ( $parameters_count = count( $parameters ) )
 		)// get-/set-ters -- determine which and validity and call
