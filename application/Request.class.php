@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl)
  *  @date 2011-03-05
  *  Created: sab 2011-03-05, 16:07.40 CET
- *  Last modified: mar 2011-03-22, 13:10.57 CET
+ *  Last modified: dim 2011-03-27, 15:30.28 CEST
 **/
 
 /**
@@ -15,6 +15,7 @@
 class Request
 {
 	private $resource;
+	private $modifiers;
 	private $verb;
 	private $app_base;
 	private static $FORMFIELDNAME_METHOD  =  'method';
@@ -63,7 +64,13 @@ class Request
 		}
 		$this->determineAppBase();
 
-		$resource  =  $_SERVER[ 'REQUEST_URI' ];
+		$modifiers  =  NULL;
+		$resource   =  $_SERVER[ 'REQUEST_URI' ];
+		if ( $pos = strpos( $resource , '?' ) )
+		{
+			$modifiers  =  explode( '&' , substr( $resource , $pos + 1 ) );
+			$resource   =  substr( $resource , 0 , $pos );
+		}
 
 		if ( $this->app_base && 0 === strpos( $resource , $this->app_base ) )
 			$resource  =  substr( $resource , strlen( $this->app_base ) );
@@ -71,7 +78,8 @@ class Request
 		if ( FALSE === $resource )
 			$resource  =  '/';
 
-		$this->resource  =  $resource;
+		$this->modifiers  =  $modifiers;
+		$this->resource   =  $resource;
 	}
 	private function determineVerb ()
 	{
@@ -85,8 +93,31 @@ class Request
 		$this->verb  =  $verb;
 	}
 
-	public function resourceArray ()
+	public function method ()
 	{
+		$method  =  $this->verb;
+		$method  =  strtolower( $method );
+		return $method;
+	}
+	public function resource ()
+	{
+		$arr  =  explode( '/' , $this->resource );
+		array_shift( $arr );
+		return $arr;
+	}
+	public function uri ()
+	{
+		$uri  =  $this->resource .
+			(
+				$this->modifiers
+				? '?' .
+					implode(
+						$this->modifiers , '&'
+					)
+				: ''
+			)
+		;
+		return $uri;
 	}
 
 	public           function __call ( $method , $parameters = array() )
@@ -94,6 +125,14 @@ class Request
 		if ( method_exists( $this , '_' . $method ) )
 			return call_user_func_array(
 				array( $this , '_' . $method ) ,
+				$parameters
+			);
+		elseif (
+			'_' === $method{0}
+			&& method_exists( $this , substr( $method , 1 ) )
+		)
+			return call_user_func_array(
+				array( $this , substr( $method , 1 ) ) ,
 				$parameters
 			);
 		/* *

@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl)
  *  @date 2011-03-05
  *  Created: sab 2011-03-05, 15:51.10 CET
- *  Last modified: sab 2011-03-05, 16:04.42 CET
+ *  Last modified: dim 2011-03-27, 15:26.44 CEST
 **/
 
 
@@ -29,6 +29,6 @@ define(
 	DIRECTORY_SEPARATOR
 );
 
-require APP_DIR . 'application.php';
+require APP_DIR . 'main.php';
 
 
