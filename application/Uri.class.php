@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 10:26.33 CET
- *  Last modified: dim 2011-03-27, 16:04.07 CEST
+ *  Last modified: dim 2011-03-27, 22:16.00 CEST
 **/
 
 class Uri
@@ -48,7 +48,6 @@ class Uri
 		}
 
 		$new_req  =  array();
-		vd($request);
 		foreach ( $req as $request )
 		{
 			$r  = explode( '=' , $request );

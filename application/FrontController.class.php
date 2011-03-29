@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 09:56.15 CET
- *  Last modified: dim 2011-03-27, 15:29.40 CEST
+ *  Last modified: mar 2011-03-29, 02:01.55 CEST
 **/
 
 class FrontController
@@ -31,8 +31,44 @@ class FrontController
 			);
 		$client_target  =  new $class();
 		$action  =  Request::_method();
-		$client_target->$action();
+		$response  =  $client_target->$action();
 
+		$content  =  $this->parseResponse( $response );
+
+		$head_title  =  '';
+		$body_title  =  '';
+		echo <<<HTM
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf8" />
+		<title>{$head_title}</title>
+		<style>html{background-color:black;color:silver;font-family:sans-serif;}</style>
+	</head>
+	<body>
+		<h1>{$body_title}</h1>{$content}
+	</body>
+</html>
+HTM;
+	}
+	private function parseResponse ( $response )
+	{
+		$return  =  NULL;
+		if ( $response instanceof Viewable )
+			$return .=  "\n\t\t" . $response->show();
+		elseif ( is_string( $response ) )
+			$return .=  $response;
+		elseif ( is_array( $response ) )
+			foreach ( $response as $r )
+				$return .=  $this->parseResponse( $r );
+
+		if ( !is_string( $return ) && !is_null( $return ) )
+			throw new Exception(
+				'wrong return... (probably show-method)'
+				. ( defined( 'DEV' ) ? ' ' . rvd( $return ) : '' )
+			);
+
+		return $return;
 	}
 }
 

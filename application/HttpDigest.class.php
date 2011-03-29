@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl)
  *  @date 2011-03-08
  *  Created: mar 2011-03-08, 15:08.45 CET
- *  Last modified: mar 2011-03-08, 15:47.43 CET
+ *  Last modified: dim 2011-03-27, 23:21.12 CEST
 **/
 
 /*
@@ -66,6 +66,8 @@ class HTTPDigest
 	{
 		if (isset($_SERVER['Authorization'])) {
 			return $_SERVER['Authorization'];
+		} elseif (isset($_SERVER['PHP_AUTH_DIGEST'])) {
+			return $_SERVER['PHP_AUTH_DIGEST'];
 		} elseif (function_exists('apache_request_headers')) {
 			$headers = apache_request_headers();
 			if (isset($headers['Authorization'])) {
@@ -82,54 +84,83 @@ class HTTPDigest
 	function authenticate($users)
 	{
 		$authorization = $this->getAuthHeader();
-		if ($authorization) {
-			if (substr($authorization, 0, 5) == 'Basic') {
-				trigger_error('You are trying to use HTTP Basic authentication but I am expecting HTTP Digest');
-				exit;
-			}
-			if (
-					preg_match('/username="([^"]+)"/', $authorization, $username) &&
-					preg_match('/nonce="([^"]+)"/', $authorization, $nonce) &&
-					preg_match('/response="([^"]+)"/', $authorization, $response) &&
-					preg_match('/opaque="([^"]+)"/', $authorization, $opaque) &&
-					preg_match('/uri="([^"]+)"/', $authorization, $uri)
-				) {
-				$username = $username[1];
-				$requestURI = $_SERVER['REQUEST_URI'];
-				if (strpos($requestURI, '?') !== FALSE) { // hack for IE which does not pass querystring in URI element of Digest string or in response hash
-					$requestURI = substr($requestURI, 0, strlen($uri[1]));
-				}
-				if (
-						isset($users[$username]) &&
-						$opaque[1] == $this->getOpaque() &&
-						$uri[1] == $requestURI &&
-						$nonce[1] == $this->getNonce()
-					) {
-					$passphrase = $users[$username];
-					if ($this->passwordsHashed) {
-						$a1 = $passphrase;
-					} else {
-						$a1 = md5($username.':'.$this->getRealm().':'.$passphrase);
-					}
-					$a2 = md5($_SERVER['REQUEST_METHOD'].':'.$requestURI);
-					if (
-							preg_match('/qop="?([^,\s"]+)/', $authorization, $qop) &&
-						preg_match('/nc=([^,\s"]+)/', $authorization, $nc) &&
-							preg_match('/cnonce="([^"]+)"/', $authorization, $cnonce)
-							) {
-								$expectedResponse = md5($a1.':'.$nonce[1].':'.$nc[1].':'.$cnonce[1].':'.$qop[1].':'.$a2);
-							} else {
-								$expectedResponse = md5($a1.':'.$nonce[1].':'.$a2);   
-							}
-					if ($response[1] == $expectedResponse) {
-						return $username;
-					}
-				}
-			}
-		} else {
-			trigger_error('HTTP Digest headers not being passed to PHP by the server, unable to authenticate user');
+		if ( !$authorization)
+		{
+			trigger_error(
+				'HTTP Digest headers not being passed to PHP by the server, '.
+				'unable to authenticate user'
+			);
 			exit;
 		}
+
+		if (substr($authorization, 0, 5) == 'Basic')
+		{
+			trigger_error('You are trying to use HTTP Basic authentication but I am expecting HTTP Digest');
+			exit;
+		}
+		
+		if (
+				!(
+				preg_match('/username="([^"]+)"/', $authorization, $username) &&
+				preg_match('/nonce="([^"]+)"/', $authorization, $nonce) &&
+				preg_match('/response="([^"]+)"/', $authorization, $response) &&
+				preg_match('/opaque="([^"]+)"/', $authorization, $opaque) &&
+				preg_match('/uri="([^"]+)"/', $authorization, $uri)
+				)
+			)
+		{
+			if ( defined('DEV') )
+				echo 'auth-header does not meet expectations';
+			return NULL;
+		}
+
+		$username = $username[1];
+		$requestURI = $_SERVER['REQUEST_URI'];
+		if (strpos($requestURI, '?') !== FALSE) {
+			// hack for IE which does not pass querystring
+			//  in URI element of Digest string or in response hash
+			$requestURI = substr($requestURI, 0, strlen($uri[1]));
+		}
+
+		if (
+				!(
+				isset($users[$username]) &&
+				$opaque[1] == $this->getOpaque() &&
+				$uri[1] == $requestURI &&
+				$nonce[1] == $this->getNonce()
+				)
+			) {
+			if ( defined('DEV') )
+				ChromePhp::log(
+					'opaque, uri or nonce not as expected.'
+				);
+			return NULL;
+		}
+
+		$passphrase = $users[$username];
+		if ($this->passwordsHashed) {
+			$a1 = $passphrase;
+		} else {
+			$a1 = md5($username.':'.$this->getRealm().':'.$passphrase);
+		}
+
+		$a2 = md5($_SERVER['REQUEST_METHOD'].':'.$requestURI);
+		if (
+				preg_match('/qop="?([^,\s"]+)/', $authorization, $qop) &&
+			preg_match('/nc=([^,\s"]+)/', $authorization, $nc) &&
+				preg_match('/cnonce="([^"]+)"/', $authorization, $cnonce)
+		) {
+			$expectedResponse = md5(
+				$a1.':'.$nonce[1].':'.$nc[1].':'.$cnonce[1].':'.$qop[1].':'.$a2
+			);
+		} else {
+			$expectedResponse = md5($a1.':'.$nonce[1].':'.$a2);
+		}
+
+		if ($response[1] == $expectedResponse) {
+			return $username;
+		}
+
 		return NULL;
 	}
 
@@ -158,7 +189,7 @@ class HTTPDigest
 			return $this->realm.'-'.getmyuid();
 		} else {
 			return $this->realm;
-		}    
+		}
 	}
 
 }
