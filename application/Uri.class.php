@@ -16,6 +16,10 @@ class Uri
 	{
 	}
 
+	public static function current ()
+	{
+		return Request::_uri();
+	}
 	public static function alterCurrent ( $alternations )
 	{
 		$new  =  Request::_uri();

@@ -4,11 +4,12 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-27
  *  Created: dim 2011-03-27, 23:23.34 CEST
- *  Last modified: dim 2011-03-27, 23:32.35 CEST
+ *  Last modified: ĵaŭ 2011-03-31, 21:30.12 CEST
 **/
 
 class User
 {
+	private $known  =  FALSE;
 	public           function __construct ()
 	{
 		$HTTPDigest = new HttpDigest();
@@ -21,19 +22,22 @@ class User
 		{
 			$HTTPDigest->send();
 			header( 'HTTP/1.0 401 Unauthorized' );
-			return FALSE;
+			$this->known  =  FALSE;
+			return;
 		}
 		elseif ( $username = $HTTPDigest->authenticate( $users ) )
 		{
 			//echo '<p>Hello ' . $username . '.</p>';
 			//echo '<p>This resource is protected by HTTP digest.</p>';
-			return TRUE;
+			$this->known  = TRUE;
+			return;
 		}
 		elseif ( isset( $_GET['retry'] ) ) //  nonce died -- timeout of noncelife
 		{
 			$HTTPDigest->send();
 			header( 'HTTP/1.0 401 Unauthorized' );
-			return FALSE;
+			$this->known  = FALSE;
+			return;
 		}
 		else
 		{
@@ -46,8 +50,13 @@ class User
 					//) ,
 				//)
 			//) .  '">retry</a></p>';
-			return FALSE;
+			$this->known  = FALSE;
+			return;
 		}
+	}
+	public function known ()
+	{
+		return $this->known;
 	}
 }
 

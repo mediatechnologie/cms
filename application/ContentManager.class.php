@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 10:07.26 CET
- *  Last modified: mar 2011-03-29, 03:45.53 CEST
+ *  Last modified: ĵaŭ 2011-03-31, 22:48.25 CEST
 **/
 
 //  @todo[~immeëmosol, mar 2011-03-29, 03:51.44 CEST]
@@ -14,16 +14,42 @@ class ContentManager extends Handler
 {
 	public           function __construct ()
 	{
-		//  Because all methods need authentication
-		Users::get();
+		// Because most methods need to know which type of user is active
+		$this->user  =  Users::get();
 	}
+	public function pre_action ()
+	{
+		$return  =  NULL;
+		//  Because all this object's methods need authentication
+		if ( !$this->user->known() )
+			$return  =  new Window(
+					'unauthorized' ,
+					''
+						. '<p>You shall not pass!</p>'
+						. '<p><a href="'
+						. Uri::alterCurrent(
+							array(
+								'get' => array(
+									'retry' ,
+								) ,
+							)
+						)
+						. '">retry</a>( timed-out)</p>'
+				)
+			;
+		return $return;
+	}
+	/**
+	 *  Shows an overview of management-tasks.
+	**/
 	public function get ()
 	{
-		//$paginas  =  new DataObject( 'paginas' );
-		$paginas  =  NULL;
-		$contents  =  array();
-		$contents[]  =  new Form( $paginas );
-		$contents[]  =  'AAAAHHHH!!!';
+		$paginas_form  =  new Form( new PageDataObject() );
+
+		$contents      =  array();
+		$contents[]    =  $paginas_form;
+		$contents[]    =  'AAAAHHHH!!!';
+
 		return $contents;
 	}
 }

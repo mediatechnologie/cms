@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 09:56.15 CET
- *  Last modified: mar 2011-03-29, 02:01.55 CEST
+ *  Last modified: ĵaŭ 2011-03-31, 22:25.49 CEST
 **/
 
 class FrontController
@@ -31,12 +31,40 @@ class FrontController
 			);
 		$client_target  =  new $class();
 		$action  =  Request::_method();
-		$response  =  $client_target->$action();
-
-		$content  =  $this->parseResponse( $response );
+		$response  =  NULL;
+		if ( method_exists( $client_target , 'pre_action' ) )
+			$response  =  $client_target->pre_action();
+		if ( NULL === $response )
+			$response  =  $client_target->$action();
+		if ( method_exists( $client_target , 'post_action' ) )
+			$post_action  =  $client_target->post_action();
+		if ( isset( $post_action ) && NULL !== $post_action )
+			$response  =  $post_action;
 
 		$head_title  =  '';
 		$body_title  =  '';
+		$content  =  $this->parseResponse( $response );
+		if ( is_array( $content ) )
+		{
+			$head_title  =
+				isset( $content[ 'head_title' ] )
+				?  $content['head_title']
+				: $head_title
+			;
+			$body_title  =
+				isset( $content[ 'body_title' ] )
+				?  $content['body_title']
+				: $body_title
+			;
+			$content  =
+				isset( $content[ 'content' ] )
+				?  $content['content']
+				: $content
+			;
+		}
+		if ( is_string( $content ) && "\n" !== $content{0} )
+			$content  =  "\n\t\t$content";
+
 		echo <<<HTM
 <!DOCTYPE html>
 <html>
@@ -55,14 +83,25 @@ HTM;
 	{
 		$return  =  NULL;
 		if ( $response instanceof Viewable )
-			$return .=  "\n\t\t" . $response->show();
+			$return  =  $response->show();
+		elseif ( $response instanceof Window )
+			$return  =  array(
+				'head_title' => $response->title()
+				, 'body_title' => $response->title()
+				, 'content' => $response->content()
+			)
+		;
 		elseif ( is_string( $response ) )
 			$return .=  $response;
 		elseif ( is_array( $response ) )
 			foreach ( $response as $r )
 				$return .=  $this->parseResponse( $r );
 
-		if ( !is_string( $return ) && !is_null( $return ) )
+		if (
+			  !is_string( $return )
+			&& !is_null( $return )
+			&& !is_array( $return )
+		)
 			throw new Exception(
 				'wrong return... (probably show-method)'
 				. ( defined( 'DEV' ) ? ' ' . rvd( $return ) : '' )

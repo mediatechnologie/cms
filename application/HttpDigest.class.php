@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl)
  *  @date 2011-03-08
  *  Created: mar 2011-03-08, 15:08.45 CET
- *  Last modified: dim 2011-03-27, 23:21.12 CEST
+ *  Last modified: ĵaŭ 2011-03-31, 22:41.42 CEST
 **/
 
 /*
@@ -43,7 +43,8 @@ class HTTPDigest
 	/** The life of the nonce value in seconds
 	 * @var int
 	 */
-	var $nonceLife = 300;
+	//var $nonceLife = 300;
+	var $nonceLife = 600000;
 
 	/** Send HTTP Auth header */
 	function send()
@@ -110,7 +111,7 @@ class HTTPDigest
 			)
 		{
 			if ( defined('DEV') )
-				echo 'auth-header does not meet expectations';
+				ChromePhp::log( 'auth-header does not meet expectations' );
 			return NULL;
 		}
 
@@ -131,7 +132,7 @@ class HTTPDigest
 				)
 			) {
 			if ( defined('DEV') )
-				ChromePhp::log(
+				ChromePhp::warn(
 					'opaque, uri or nonce not as expected.'
 				);
 			return NULL;

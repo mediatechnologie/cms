@@ -15,7 +15,7 @@ require 'autoload.php';
 spl_autoload_extensions( '.php , .class.php' );
 set_include_path( APP_DIR );
 
-$mappings  =  array(
+$uri_mappings  =  array(
 	'' => array( 'Paginas' , 'home' ) ,
 	'beheer' => array( 'ContentManager' , ) ,
 	'paginas' => array( 'Pages' , ) ,
@@ -23,7 +23,7 @@ $mappings  =  array(
 
 try
 {
-	new FrontController( $mappings );
+	new FrontController( $uri_mappings );
 }
 catch ( Exception $e )
 {
