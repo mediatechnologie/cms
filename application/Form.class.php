@@ -4,11 +4,14 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-29
  *  Created: mar 2011-03-29, 03:45.59 CEST
- *  Last modified: ven 2011-04-01, 00:38.02 CEST
+ *  Last modified: ven 2011-04-01, 14:56.19 CEST
 **/
 
 //  @todo[~immeëmosol, mar 2011-03-29, 03:54.36 CEST]
 //    decide on placeholder-support for certain input-types
+//  @todo[~immeëmosol, ven 2011-04-01, 10:55.44 CEST]
+//    fixen dat de id`s op de formulierenvelden wel uniek zijn,
+//      wellicht door een id voor het overkoepelende fieldset mee te nemen
 class Form implements Viewable
 {
 	private static $DEFAULT_METHOD  =  'POST';
@@ -17,17 +20,17 @@ class Form implements Viewable
 	private $method   =  NULL;
 	private $enctype  =  NULL;
 
-	private $do  =  NULL;
+	private $fo  =  NULL;
 
 	public           function __construct ( $do = NULL )
 	{
 		if ( NULL !== $do )
-			$this->newData( new FormAdapter( $do ) );
-	}
-	private function newData ( FormAdapter $do = NULL )
-	{
-		// fields danwel fieldsets implementeren
-		$this->do  =  $do;
+			if ( $do instanceof DataObject )
+			{
+				if ( $action = $do->controller() )
+					$this->action( $action );
+				$this->fo  =  new FormAdapter( $do );
+			}
 	}
 	public           function show ()
 	{
@@ -41,12 +44,17 @@ class Form implements Viewable
 		$form .=  "\n";
 
 		
-		if ( $do_fs = $this->do->fieldsets() )
-			$form .=  $this->parseFieldsets( $do_f );
-		elseif ( $do_fs = $this->do->fields() )
-			$form .=  $this->parseFields( $do_f );
+		if ( $fo_fs = $this->fo->fieldsets() )
+			$form .=  $this->parseFieldsets( $fo_fs );
+		elseif ( $fo_fs = $this->fo->fields() )
+			$form .=  $this->parseFields( $fo_fs );
 		else
 			$form .=  'empty';
+
+		$form .=  '<input type="submit" />';
+		$form .=  "\n";
+		$form .=  '<input type="reset" />';
+		$form .=  "\n";
 
 		$form .=  '</form>';
 		$form .=  "\n";
@@ -54,20 +62,102 @@ class Form implements Viewable
 	}
 
 
-	public function action ()
+	private function parseFieldsets ( $fieldsets )
 	{
-		return ' action="' . (
-				NULL !== $this->action
-				? $this->action
-				: (
-					(
-						  class_exists( 'Uri' )
-						&& method_exists( 'Uri' , 'current' )
+		$return  =  '';
+		foreach ( $fieldsets as $fieldset )
+		{
+			$return .=  '<fieldset>';
+			$return .=  "\n";
+			$return .=  '<legend>' . $fieldset[ 'legend' ] . '</legend>';
+			$return .=  "\n";
+			$return .=  $this->parseFields( $fieldset[ 'fields' ] );
+			$return .=  "\n";
+			$return .=  '</fieldset>';
+			$return .=  "\n";
+		}
+		return $return;
+	}
+	private function parseFields ( $fields )
+	{
+		$return  =  '';
+		$return .=  '<dl>';
+		$return .=  "\n";
+		foreach  ( $fields  as $field )
+		{
+			if ( 'hidden' === $field[ 'type' ] )
+				continue;
+
+			$return .=  ''
+				. '<dt>'
+				. '<label for="">' . $field[ 'desc' ] . '</label>'
+				. '</dt>'
+			;
+			$return .=  "\n";
+			if ( 'textarea' === $field[ 'type' ] )
+			{
+				$return .=  ''
+					. '<dd>'
+					. $this->parseTextarea( $field )
+					. '</dd>'
+				;
+				$return .=  "\n";
+				continue;
+			}
+
+			$return .=  ''
+				. '<dd>'
+				. $this->parseInput( $field )
+				. '</dd>'
+			;
+			$return .=  "\n";
+		}
+		$return .=  '</dl>';
+		$return .=  "\n";
+		return $return;
+	}
+
+	private function parseTextarea ( $field )
+	{
+		return ''
+			. '<'
+			. $field[ 'type' ]
+			. ' id="' . $field[ 'name' ] . '"'
+			. ' name="' . $field[ 'name' ] . '"'
+			. '>'
+			. '</' . $field[ 'type' ] . '>'
+		;
+	}
+	private function parseInput ( $field )
+	{
+		return ''
+			. '<input'
+			. ' type="' . $field[ 'type' ] . '"'
+			. ' id="' . $field[ 'name' ] . '"'
+			. ' name="' . $field[ 'name' ] . '"'
+			. ' />'
+		;
+	}
+
+
+	public function action ( $action = NULL )
+	{
+		if ( NULL === $action )
+			return ' action="' . (
+					NULL !== $this->action
+					? $this->action
+					: (
+						(
+							  class_exists( 'Uri' )
+							&& method_exists( 'Uri' , 'current' )
+						)
+						? Uri::current()
+						: $_SERVER[ 'REQUEST_URI' ]
 					)
-					? Uri::current()
-					: $_SERVER[ 'REQUEST_URI' ]
-				)
-			) . '"';
+				) . '"'
+			;
+		
+		$this->action  =  $action;
 	}
 	public function method ()
 	{

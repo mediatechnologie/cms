@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 10:07.26 CET
- *  Last modified: ĵaŭ 2011-03-31, 22:48.25 CEST
+ *  Last modified: ven 2011-04-01, 12:01.23 CEST
 **/
 
 //  @todo[~immeëmosol, mar 2011-03-29, 03:51.44 CEST]
@@ -45,10 +45,13 @@ class ContentManager extends Handler
 	public function get ()
 	{
 		$paginas_form  =  new Form( new PageDataObject() );
+		$paginas_overzicht  =  new Overview( new pageDataObject() );
 
 		$contents      =  array();
 		$contents[]    =  $paginas_form;
-		$contents[]    =  'AAAAHHHH!!!';
+
+		$contents[]    =  $paginas_overzicht;
+		//$contents[]    =  'AAAAHHHH!!!';
 
 		return $contents;
 	}

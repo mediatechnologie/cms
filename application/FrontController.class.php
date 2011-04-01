@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 09:56.15 CET
- *  Last modified: ĵaŭ 2011-03-31, 22:25.49 CEST
+ *  Last modified: ven 2011-04-01, 12:37.06 CEST
 **/
 
 class FrontController
@@ -29,13 +29,23 @@ class FrontController
 			throw new Exception(
 				'class '.(defined('DEV')?'`'.$class.'` ':'').'does not exist'
 			);
+
 		$client_target  =  new $class();
-		$action  =  Request::_method();
-		$response  =  NULL;
+		$action         =  Request::_method();
+		$response       =  NULL;
+
 		if ( method_exists( $client_target , 'pre_action' ) )
 			$response  =  $client_target->pre_action();
+
 		if ( NULL === $response )
-			$response  =  $client_target->$action();
+			$response  =  call_user_func_array(
+				array(
+					$client_target ,
+					$action
+				) ,
+				$request
+			);
+
 		if ( method_exists( $client_target , 'post_action' ) )
 			$post_action  =  $client_target->post_action();
 		if ( isset( $post_action ) && NULL !== $post_action )
@@ -62,22 +72,26 @@ class FrontController
 				: $content
 			;
 		}
-		if ( is_string( $content ) && "\n" !== $content{0} )
+		if ( isset( $content{0} ) && "\n" !== $content{0} )
 			$content  =  "\n\t\t$content";
 
-		echo <<<HTM
+		$page  =  <<<HTM
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf8" />
 		<title>{$head_title}</title>
-		<style>html{background-color:black;color:silver;font-family:sans-serif;}</style>
+HTM;
+		$page .=  '		<link rel="stylesheet" href="css/main.css" />' . "\n";
+		$rage  =  '		<style>html{background-color:black;color:silver;font-family:sans-serif;}</style>' . "\n";
+		$page .=  <<<HTM
 	</head>
 	<body>
 		<h1>{$body_title}</h1>{$content}
 	</body>
 </html>
 HTM;
+		echo $page;
 	}
 	private function parseResponse ( $response )
 	{
@@ -86,7 +100,7 @@ HTM;
 			$return  =  $response->show();
 		elseif ( $response instanceof Window )
 			$return  =  array(
-				'head_title' => $response->title()
+				  'head_title' => $response->title()
 				, 'body_title' => $response->title()
 				, 'content' => $response->content()
 			)

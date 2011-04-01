@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-31
  *  Created: ĵaŭ 2011-03-31, 22:37.25 CEST
- *  Last modified: ven 2011-04-01, 00:34.19 CEST
+ *  Last modified: ven 2011-04-01, 10:41.51 CEST
 **/
 
 class FormAdapter
@@ -18,17 +18,15 @@ class FormAdapter
 		else
 			throw new Exception( 'unable to adapt adaptee for usage in Form' );
 	}
+	//  @note[~immeëmosol, ven 2011-04-01, 10:36.28 CEST]
+	//    methode verwerkt data-object voor gebruik in form-klasse
 	private function adaptDataObject ( DataObject $do )
 	{
-		vd( $do );
-		$form  =  '<input type="text" name="title" value="De titel" />';
-		$form .=  "\n";
-		$form .=  '<textarea name="content">value</textarea>';
-		$form .=  "\n";
-		$form .=  '<input type="submit" />';
-		$form .=  "\n";
-		$form .=  '<input type="reset" />';
-		$form .=  "\n";
+		$columns  =  $do->columns();
+		foreach ( $columns as $column )
+		{
+			$this->fields[]  =  $column;
+		}
 	}
 
 
