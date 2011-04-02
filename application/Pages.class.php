@@ -4,16 +4,20 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 10:23.59 CET
- *  Last modified: sab 2011-04-02, 17:02.31 CEST
+ *  Last modified: sab 2011-04-02, 18:28.29 CEST
 **/
 
 class Pages extends Handler
 {
+	private $default_page_id  =  'home';
 	public           function __construct ()
 	{
 	}
 	public function get ( $page_id = NULL )
 	{
+		if ( '' === $page_id )
+			$page_id  =  $this->default_page_id;
+
 		$db  =  Databases::get( __CLASS__ , __FUNCTION__ );
 		$result  =  NULL;
 		if ( is_int( $page_id ) || is_numeric( $page_id ) )
