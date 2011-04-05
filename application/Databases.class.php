@@ -4,17 +4,14 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-04-01
  *  Created: ven 2011-04-01, 10:21.44 CEST
- *  Last modified: ven 2011-04-01, 10:26.01 CEST
+ *  Last modified: mar 2011-04-05, 21:37.11 CEST
 **/
 
 class Databases
 {
-	private $db;
+	private $databases;
 	public           function __construct ()
 	{
-		$this->db  =  new MySQLi(
-			'localhost' , 'brookman' , 'bm' , 'brookman_db99'
-		);
 	}
 	private static function getInstance ()
 	{
@@ -23,10 +20,40 @@ class Databases
 			$instance  =  new self();
 		return $instance;
 	}
+	private function getDatabaseProperties ( $class , $method )
+	{
+		$db  =  array(
+			'default' => array(
+				'MySQLi' ,
+				'localhost' ,
+				'brookman' ,
+				'bm' ,
+				'brookman_db99' ,
+			) ,
+		);
+	}
 	public static function get ( $class = NULL , $method = NULL )
 	{
 		$self  =  self::getInstance();
-		return $self->db;
+		$db  =  array(
+			'default' => array(
+				'MySQLi' ,
+				'localhost' ,
+				'brookman' ,
+				'bm' ,
+				'brookman_db99' ,
+			) ,
+		);
+		if ( NULL === $class )
+			$db  =  $self->getDatabaseProperties( $class , $method );
+
+		$k  =  key( $db );
+		if ( !isset( $self->databases[ $k ] ) )
+		{
+			$o  =  new ReflectionClass( array_shift( $db[ $k ] ) );
+			$self->databases[ $k ]  =  $o->newInstanceArgs( $db[ $k ] );
+		}
+		return $self->databases[ $k ];
 	}
 }
 

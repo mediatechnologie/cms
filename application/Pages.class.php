@@ -4,9 +4,24 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 10:23.59 CET
- *  Last modified: sab 2011-04-02, 18:28.29 CEST
+ *  Last modified: mer 2011-04-06, 01:58.02 CEST
 **/
 
+//  @todo[~immeëmosol, mer 2011-04-06, 01:40.34 CEST]
+//    check if input is empty
+//    check if input for uri already exists(has to be unique, could be in db?)
+//  @todo[~immeëmosol, mer 2011-04-06, 01:53.37 CEST]
+//    restricties opleggen aan image
+//  @todo[~immeëmosol, mer 2011-04-06, 01:53.47 CEST]
+//    image-upload `abstraheren` naar een eigen klasse
+//      klasse is te configureren via parameters op
+//        toegestane type's/bestandsformaten
+//        toegestane breedte,hoogte,verhoudingen
+//      klasse controleert ook op evt. exif-gegevens?
+//  @todo[~immeëmosol, mer 2011-04-06, 01:56.44 CEST]
+//    kijken of het opslaan van het absolute (server)padnaam handig uitpakt
+//    het uitlezen en meegeven van de banner aan de weergegeven pagina;
+//      de get()-methode en Window-klasse beter onder de loep nemen
 class Pages extends Handler
 {
 	private $default_page_id  =  'home';
@@ -53,23 +68,55 @@ class Pages extends Handler
 	}
 	public function post ()
 	{
+		$errors  =  array();
+
 		$this->user  =  Users::get();
 		$db  =  Databases::get( __CLASS__ , __FUNCTION__ );
-		$resource  =  $db->query(
-			'INSERT INTO'
-			. ' page ( title , content )'
-			. ' VALUES ( '
-			. ' \'' . $db->real_escape_string( $_POST['page_title'] ) . '\' '
-			. ' , '
-			. ' \'' . $db->real_escape_string( $_POST['page_content'] ) . '\' '
-			. ')'
-		);
-		ChromePhp::log( $resource );
-		if ( TRUE === $resource )
-			return Response::OK();
+		$banner  =  ' NULL ';
 
-		$errors  =  array();
-		ChromePhp::warn( $db->error );
+		if ( isset( $_POST[ 'page_title' ] ) )
+			$page_title  =  $db->real_escape_string( $_POST['page_title'] );
+		else
+			ChromePhp::warn( 'page_title not set' );
+
+		if ( isset( $_POST[ 'page_content' ] ) )
+			$page_content  =  $db->real_escape_string( $_POST['page_content'] );
+		else
+			ChromePhp::warn( 'page_content not set' );
+
+		if ( isset( $_FILES[ 'page_banner' ] ) )
+			$banner  =  $db->real_escape_string(
+				$this->saveBanner( $_FILES[ 'page_banner' ] )
+			);
+		else
+			ChromePhp::warn( 'banner not set' );
+
+		if (
+			isset( $page_title , $page_content , $banner )
+			&& FALSE !== $banner
+		)
+		{
+			$resource  =  $db->query(
+				'INSERT INTO'
+				. ' page ( title , content , banner )'
+				. ' VALUES ( '
+				. ' \'' . $page_title . '\' '
+				. ' , '
+				. ' \'' . $page_content . '\' '
+				. ' , '
+				. ' \'' . $banner . '\' '
+				. ')'
+			);
+			ChromePhp::log( $resource );
+			if ( $db->error )
+			{
+				ChromePhp::warn( $db->error );
+				ChromePhp::log($db);
+			}
+			if ( TRUE === $resource )
+				return Response::OK();
+		}
+
 		return Response::FAIL( $errors );
 	}
 	public function put ()
@@ -79,6 +126,27 @@ class Pages extends Handler
 	public function delete ()
 	{
 		$this->user  =  Users::get();
+	}
+
+	private function saveBanner ( $banner )
+	{
+		$saved_location  =  FALSE;
+		if ( UPLOAD_ERR_OK !== $banner[ 'error' ] )
+			return $banner[ 'error' ];
+		if ( !is_uploaded_file( $banner[ 'tmp_name' ] ) )
+			return FALSE;
+		$destination  =  ''
+			. dirname( APP_DIR ) . DIRECTORY_SEPARATOR
+			. 'uploads' . DIRECTORY_SEPARATOR
+			. $banner[ 'name' ]
+		;
+		if ( !move_uploaded_file( $banner[ 'tmp_name' ] , $destination ) )
+			return FALSE;
+		$saved_location  =  $destination;
+
+		ChromePhp::log( $banner );
+		ChromePhp::log( $saved_location );
+		return $saved_location;
 	}
 }
 

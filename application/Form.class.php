@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-29
  *  Created: mar 2011-03-29, 03:45.59 CEST
- *  Last modified: sab 2011-04-02, 13:52.05 CEST
+ *  Last modified: mer 2011-04-06, 01:37.43 CEST
 **/
 
 //  @todo[~immeëmosol, mar 2011-03-29, 03:54.36 CEST]
@@ -12,8 +12,12 @@
 //  @todo[~immeëmosol, ven 2011-04-01, 10:55.44 CEST]
 //    fixen dat de id`s op de formulierenvelden wel uniek zijn,
 //      wellicht door een id voor het overkoepelende fieldset mee te nemen
+//  @todo[~immeëmosol, dim 2011-04-03, 14:52.29 CEST]
+//    fixeren van het enctype-attribuut op de form-tag
 class Form implements Viewable
 {
+	const FILE_ENCTYPE  =  'multipart/form-data';
+
 	private static $DEFAULT_METHOD  =  'POST';
 
 	private $action   =  NULL;
@@ -34,22 +38,20 @@ class Form implements Viewable
 	}
 	public           function show ()
 	{
+		if ( $fo_fs = $this->fo->fieldsets() )
+			$content  =  $this->parseFieldsets( $fo_fs );
+		elseif ( $fo_fs = $this->fo->fields() )
+			$content  =  $this->parseFields( $fo_fs );
+
 		$form  =  '';
-		$form .=  '<form'
+		$form  =  '<form'
 			. $this->action()
 			. $this->method()
 			. $this->enctype()
 			. '>'
 		;
 		$form .=  "\n";
-
-		
-		if ( $fo_fs = $this->fo->fieldsets() )
-			$form .=  $this->parseFieldsets( $fo_fs );
-		elseif ( $fo_fs = $this->fo->fields() )
-			$form .=  $this->parseFields( $fo_fs );
-		else
-			$form .=  'empty';
+		$form .=  isset( $content ) ? $content : 'empty' ;
 
 		$form .=  '<input type="submit" />';
 		$form .=  "\n";
@@ -87,6 +89,8 @@ class Form implements Viewable
 		{
 			if ( 'hidden' === $field[ 'type' ] )
 				continue;
+			if ( 'file' === $field[ 'type' ] )
+				$this->enctype( self::FILE_ENCTYPE , TRUE );
 
 			$return .=  ''
 				. '<dt>'
@@ -122,8 +126,8 @@ class Form implements Viewable
 		return ''
 			. '<'
 			. $field[ 'type' ]
-			. ' id="' . $field[ 'name' ] . '"'
-			. ' name="' . $field[ 'name' ] . '"'
+			. $this->fieldId( $field )
+			. $this->fieldName( $field )
 			. '>'
 			. '</' . $field[ 'type' ] . '>'
 		;
@@ -133,10 +137,21 @@ class Form implements Viewable
 		return ''
 			. '<input'
 			. ' type="' . $field[ 'type' ] . '"'
-			. ' id="' . $field[ 'name' ] . '"'
-			. ' name="' . $field[ 'name' ] . '"'
+			. $this->fieldId( $field )
+			. $this->fieldName( $field )
+			. ' name="' . $this->fo->name() . '_' . $field[ 'name' ] . '"'
 			. ' />'
 		;
+	}
+	private function fieldId ( $field )
+	{
+		$id  =  ' id="' . $this->fo->name() . '_' . $field[ 'name' ] . '"';
+		return $id;
+	}
+	private function fieldName ( $field )
+	{
+		$name  =  ' name="' . $this->fo->name() . '_' . $field[ 'name' ] . '"';
+		return $name;
 	}
 
 
@@ -167,10 +182,18 @@ class Form implements Viewable
 				: self::$DEFAULT_METHOD
 			) . '"';
 	}
-	public function enctype ()
+	public function enctype ( $enctype = NULL , $fixed = FALSE )
 	{
-		if ( $this->enctype )
-			return ' enctype="' . $this->enctype . '"';
+		if ( NULL === $enctype )
+			return $this->enctype
+				? ' enctype="' . $this->enctype . '"'
+				: NULL
+			;
+		if ( self::FILE_ENCTYPE === $enctype )
+			$this->enctype  =  self::FILE_ENCTYPE;#'multipart/form-data';
+		if ( FALSE !== $fixed /*TRUE === $fixed*/)
+//doe iets van dat andere data-sets niet meer de enctype kunnen veranderen...
+			$fixed;
 	}
 }
 

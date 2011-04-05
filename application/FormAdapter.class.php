@@ -10,6 +10,7 @@
 class FormAdapter
 {
 	private $fields   =  array();
+	private $name  =  '';
 
 	public           function __construct ( $adaptee )
 	{
@@ -22,6 +23,7 @@ class FormAdapter
 	//    methode verwerkt data-object voor gebruik in form-klasse
 	private function adaptDataObject ( DataObject $do )
 	{
+		$this->name  =  $do->name();
 		$columns  =  $do->columns();
 		foreach ( $columns as $column )
 		{
@@ -36,6 +38,11 @@ class FormAdapter
 	public function fields ()
 	{
 		return $this->fields;
+	}
+
+	public function name ()
+	{
+		return $this->name;
 	}
 }
 
