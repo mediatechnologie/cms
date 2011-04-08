@@ -59,7 +59,8 @@ p , ul , ol
 				testimonialspagina en
 				tips'n'trucs-pagina.
 			En een beheergedeelte specifiek gemaakt voor deze paginas.
-
+		</p>
+		<p>
 			Voornaamste oplevering is het beheergedeelte van de website en de 
 			bijbehorende gegevensopslag.
 		</p>
