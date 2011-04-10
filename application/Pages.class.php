@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 10:23.59 CET
- *  Last modified: mer 2011-04-06, 01:58.02 CEST
+ *  Last modified: dim 2011-04-10, 19:16.17 CEST
 **/
 
 //  @todo[~immeëmosol, mer 2011-04-06, 01:40.34 CEST]
@@ -22,6 +22,8 @@
 //    kijken of het opslaan van het absolute (server)padnaam handig uitpakt
 //    het uitlezen en meegeven van de banner aan de weergegeven pagina;
 //      de get()-methode en Window-klasse beter onder de loep nemen
+//  @todo[~immeëmosol, ven 2011-04-08, 15:28.17 CEST]
+//    find appropriate http-header for 'no updates'-exception
 class Pages extends Handler
 {
 	private $default_page_id  =  'home';
@@ -121,11 +123,76 @@ class Pages extends Handler
 	}
 	public function put ()
 	{
+		if ( !isset( $_POST[ 'page_id' ] ) )
+			throw new Exception( 'page-identifier not set' );
+
 		$this->user  =  Users::get();
+
+		$page_id  =  1 * $_POST['page_id'];
+
+		$db  =  Databases::get( __CLASS__ , __FUNCTION__ );
+
+		$updates  =  array();
+		if ( isset( $_POST[ 'title' ] ) && !empty( $_POST[ 'title' ] ) )
+		{
+			$title    =  $_POST[ 'title' ];
+			$title    =  $db->real_escape_string( $title   );
+			$updates[]  =  ' title   = \'' . $title   . '\' ';
+		}
+		if ( isset( $_POST[ 'content' ] ) && !empty( $_POST[ 'content' ] ) )
+		{
+			$content  =  $_POST[ 'content' ];
+			$content  =  $db->real_escape_string( $content );
+			$updates[]  =  ' content = \'' . $content . '\' ';
+		}
+		if ( isset( $_POST[ 'banner' ] ) && !empty( $_POST[ 'banner' ] ) )
+		{
+			$banner   =  $_POST[ 'banner' ];
+			$banner   =  $db->real_escape_string( $banner  );
+			$updates[]  =  ' banner  = \'' . $banner  . '\'  ';
+		}
+		if ( empty( $updates ) )
+			throw new Exception( 'no updates' );
+
+		$result  =  NULL;
+		$resource  =  $db->query(
+			'UPDATE page SET '
+			. implode( $updates , ',' )
+			. ' WHERE page.page_id = '
+			. $db->real_escape_string( $page_id )
+		);
+
+		if ( NULL === $resource )
+			return;
+
+		if ( TRUE !== $resource )
+			return Response::FAIL();
+
+	return Response::OK();
 	}
 	public function delete ()
 	{
+		if ( !isset( $_POST[ 'page_id' ] ) )
+			throw new Exception( 'page-identifier not set' );
+
 		$this->user  =  Users::get();
+
+		$page_id  =  1 * $_POST['page_id'];
+
+		$db  =  Databases::get( __CLASS__ , __FUNCTION__ );
+		$result  =  NULL;
+		$resource  =  $db->query(
+			'DELETE FROM page WHERE page.page_id = '
+			. $db->real_escape_string( $page_id )
+		);
+
+		if ( NULL === $resource )
+			return;
+
+		if ( TRUE !== $resource )
+			return Response::FAIL();
+
+	return Response::OK();
 	}
 
 	private function saveBanner ( $banner )
