@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 09:56.15 CET
- *  Last modified: sab 2011-04-02, 18:32.02 CEST
+ *  Last modified: mar 2011-04-12, 18:05.56 CEST
 **/
 
 class FrontController
@@ -23,8 +23,28 @@ class FrontController
 			isset( $request[0] )
 			&& array_key_exists( $request[0] , $this->mappings )
 		)
-			$classes[]  =  $this->mappings[ $request[0] ][0];
+		{
+			//$classes[]  =  $this->mappings[ $request[0] ][0];
+			$r  =  $request;
+			array_shift( $r );
+			$class  =  $this->mappings[ $request[0] ][0];
+			$response = $this->attempt_class( $class , $r );
+		}
+		if ( !$response )
+			$response  =  $this->fallback();
 
+		if ( $response )
+			$this->react( $response );
+		else
+			throw new Exception(
+				'grando erroro'
+			);
+	}
+	private function fallback (
+		$mappings = array() ,
+		$default_class = NULL
+	)
+	{
 		if ( NULL !== $default_class )
 			$classes[]  =  $default_class;
 
@@ -37,12 +57,7 @@ class FrontController
 				break;
 		}
 
-		if ( $response )
-			$this->react( $response );
-		else
-			throw new Exception(
-				'grando erroro'
-			);
+		return $response;
 	}
 	private function attempt_class ( $class , $request )
 	{
@@ -110,11 +125,29 @@ class FrontController
 
 		return $return;
 	}
+	private function headerIsset ( $header )
+	{
+		$headers_list  =  headers_list();
+		$set_headers  =  array();
+		foreach ( $headers_list as $headers_list_item )
+		{
+			$a  =  explode( ':' , $headers_list_item , 2 );
+			$set_headers[ $a[0] ]  =  $a[1];
+		}
+		return array_key_exists( $header , $set_headers );
+	}
 	private function react ( $response )
 	{
+		$content  =  $this->parseResponse( $response );
+
+		if ( $this->headerIsset( 'Content-type' ) )
+		{
+			echo $content;
+			return;
+		}
+
 		$head_title  =  '';
 		$body_title  =  '';
-		$content  =  $this->parseResponse( $response );
 		if ( is_array( $content ) )
 		{
 			$head_title  =

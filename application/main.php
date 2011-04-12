@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl)application.php
  *  @date 2011-03-05
  *  Created: sab 2011-03-05, 16:05.33 CET
- *  Last modified: sab 2011-04-02, 18:28.43 CEST
+ *  Last modified: mar 2011-04-12, 17:09.52 CEST
 **/
 
 
@@ -19,6 +19,7 @@ $uri_mappings  =  array(
 	//'' => array( 'Pages' , 'home' ) ,
 	'beheer' => array( 'ContentManager' , ) ,
 	//'paginas' => array( 'Pages' , ) ,
+	'uploads' => array( 'UploadManager' , ) ,
 );
 
 try

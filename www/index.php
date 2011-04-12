@@ -28,6 +28,18 @@ define(
 	) .
 	DIRECTORY_SEPARATOR
 );
+define(
+	'WEB_ROOT' ,
+	str_replace(
+			realpath(
+				dirname(
+					$_SERVER[ 'SCRIPT_FILENAME' ]
+				)
+			) ,
+		'' ,
+		WEB_DIR
+	)
+);
 
 require APP_DIR . 'main.php';
 

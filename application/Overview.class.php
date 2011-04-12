@@ -4,11 +4,15 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-04-01
  *  Created: ven 2011-04-01, 11:32.28 CEST
- *  Last modified: dim 2011-04-10, 19:14.11 CEST
+ *  Last modified: mar 2011-04-12, 17:15.47 CEST
 **/
 
 //  @todo[~immeëmosol, sab 2011-04-02, 17:16.13 CEST]
 //    implement/create OverviewAdapter
+//  @todo[~immeëmosol, mar 2011-04-12, 17:08.48 CEST]
+//    show-method -- get upload_dir stuff from upload-module( not yet written)
+//  @todo[~immeëmosol, mar 2011-04-12, 17:14.46 CEST]
+//    let form-creation be done by class Form
 class Overview implements Viewable
 {
 	private $do;
@@ -34,6 +38,7 @@ class Overview implements Viewable
 
 		return $results;
 	}
+
 	public function show ()
 	{
 		$contents  =  $this->contents();
@@ -43,6 +48,9 @@ class Overview implements Viewable
 			. ''
 		;
 		$cs  =  $this->do->columns() ;
+		if ( isset( $_GET['inv'] ) )
+			$contents  =  array_reverse( $contents );
+
 		$p  =  $this->do->primary();
 		$p  =  $p[0];#$this->do->getColumnValue( $p[0] );
 		foreach ( $contents as $c )
@@ -91,6 +99,38 @@ class Overview implements Viewable
 						. '>'
 						. htmlspecialchars( $c[ $cc[ 'title' ] ] )
 						. '</textarea>'
+						. '</dd>'
+						. "\n"
+					;
+					continue;
+				}
+				if ( 'file' === $cc[ 'type' ] )
+				{
+					$src  =  $c[ $cc['title'] ];
+
+					$upload_dir  =  ''
+						. dirname( APP_DIR ) . DIRECTORY_SEPARATOR
+						. 'uploads' . DIRECTORY_SEPARATOR
+					;
+					$src  =  WEB_ROOT . 'uploads/'
+						. str_replace( $upload_dir , '' , $src )
+					;
+					$return .=  ''
+						. '<dd>'
+						//. APP_DIR . ' -- ' . WEB_DIR . ' ~~ '
+						//. $upload_dir
+						//. ' :: '
+						//. $src
+						. '<img'
+						. ' src="' . $src . '"'
+						. ' alt="' . $src . '"'
+						. ' />'
+						. '<input'
+						. ' type="' . $cc[ 'type' ] . '"'
+						. ' value="' . htmlspecialchars( $c[ $cc['title'] ] ) . '"'
+						. ' name="' . $cc[ 'title' ] . '"'
+						. ' id="' . $id . '"'
+						. ' />'
 						. '</dd>'
 						. "\n"
 					;
