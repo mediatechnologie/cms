@@ -4,7 +4,7 @@
  *  @author immeëmosol (programmer dot willfris at nl) 
  *  @date 2011-03-25
  *  Created: ven 2011-03-25, 09:56.15 CET
- *  Last modified: mar 2011-04-12, 18:05.56 CEST
+ *  Last modified: mar 2011-04-12, 18:13.43 CEST
 **/
 
 class FrontController
@@ -30,7 +30,7 @@ class FrontController
 			$class  =  $this->mappings[ $request[0] ][0];
 			$response = $this->attempt_class( $class , $r );
 		}
-		if ( !$response )
+		if ( !isset( $response ) || !$response )
 			$response  =  $this->fallback();
 
 		if ( $response )
@@ -45,6 +45,9 @@ class FrontController
 		$default_class = NULL
 	)
 	{
+		$request  =  Request::_resource();
+		$classes  =  array();
+
 		if ( NULL !== $default_class )
 			$classes[]  =  $default_class;
 
